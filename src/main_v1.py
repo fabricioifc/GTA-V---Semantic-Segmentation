@@ -18,7 +18,7 @@ DATASET_ZIP = os.path.basename(DATASET_URL)
 DATASET_DIR = "dataset"
 DATASET_PATH = os.path.join(DATASET_DIR, "GTA-V-SID", "500x500")
 # Pasta onde tudo será salvo
-OUTPUT_DIR = "results" 
+OUTPUT_DIR = "results_v1" 
 os.makedirs(OUTPUT_DIR, exist_ok=True) # Cria a pasta se ela não existir
 
 IMAGE_SIZE = 256
@@ -43,8 +43,6 @@ def baixar_dataset():
         os.remove(DATASET_ZIP)
 
     print("Dataset baixado.")
-
-
 
 class GTADataset(Dataset):
     def __init__(self, path):
@@ -116,6 +114,7 @@ def save_predictions(dataset, model, num_samples=5):
     for i, idx in enumerate(indices):
         image, mask = dataset[idx]
         with torch.no_grad():
+            # unsqueeze para adicionar dimensão de batch (1, CANAIS, HEIGHT, WIDTH).
             pred = model(image.unsqueeze(0).to(DEVICE))
             pred = torch.argmax(pred, dim=1).squeeze().cpu().numpy()
 
