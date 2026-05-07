@@ -3,15 +3,20 @@ import cv2
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+import urllib.request
+import zipfile
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision import transforms
 
 # =========================================================
 # 1. CONFIGURAÇÕES
 # =========================================================
-DATASET_PATH = "/home/arquivos/GTA-V-SID/500x500"
+DATASET_URL = "http://200.135.55.29:8888/GTA-V-SID.zip"
+DATASET_ZIP = os.path.basename(DATASET_URL)
+DATASET_DIR = "dataset"
+DATASET_PATH = os.path.join(DATASET_DIR, "GTA-V-SID", "500x500")
 # Pasta onde tudo será salvo
 OUTPUT_DIR = "results" 
 os.makedirs(OUTPUT_DIR, exist_ok=True) # Cria a pasta se ela não existir
@@ -21,6 +26,25 @@ BATCH_SIZE = 4
 EPOCHS = 30
 LEARNING_RATE = 0.001
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+def baixar_dataset():
+    if os.path.isdir(DATASET_PATH):
+        return
+
+    os.makedirs(DATASET_DIR, exist_ok=True)
+
+    if not os.path.isfile(DATASET_ZIP):
+        urllib.request.urlretrieve(DATASET_URL, DATASET_ZIP)
+
+    with zipfile.ZipFile(DATASET_ZIP, "r") as zip_ref:
+        zip_ref.extractall(DATASET_DIR)
+
+    if os.path.isfile(DATASET_ZIP):
+        os.remove(DATASET_ZIP)
+
+    print("Dataset baixado.")
+
+
 
 class GTADataset(Dataset):
     def __init__(self, path):
@@ -154,7 +178,18 @@ def model_summary(model_path):
 # 3. EXECUÇÃO
 # =========================================================
 if __name__ == "__main__":
-    from torch.utils.data import random_split
+    baixar_dataset()
+
+    # Imprimir os hiperparâmetros e caminhos para conferência
+    print("Configurações:")
+    print(f"Dataset Path: {DATASET_PATH}")
+    print(f"Output Directory: {OUTPUT_DIR}")
+    print(f"Image Size: {IMAGE_SIZE}x{IMAGE_SIZE}")
+    print(f"Batch Size: {BATCH_SIZE}")
+    print(f"Epochs: {EPOCHS}")
+    print(f"Learning Rate: {LEARNING_RATE}")
+    print(f"Device: {DEVICE}\n")
+
     # 1. Carrega o dataset completo
     dataset = GTADataset(DATASET_PATH)
 
