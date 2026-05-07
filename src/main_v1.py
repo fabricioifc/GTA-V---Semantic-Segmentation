@@ -2,6 +2,7 @@ import os
 import cv2
 import torch
 import numpy as np
+import random
 import matplotlib.pyplot as plt
 import urllib.request
 import zipfile
@@ -45,9 +46,26 @@ EPOCHS = 30
 # valores muito baixos tornam o treino lento demais
 LEARNING_RATE = 0.001
 
+# Seed global para reprodutibilidade (random state)
+SEED = 42
+
 # Seleciona automaticamente GPU (cuda) se disponível, caso contrário usa CPU
 # GPU é muito mais rápida para operações com tensores
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def set_seed(seed=SEED):
+    """Define seeds dos principais geradores aleatórios usados no experimento."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+
+    # Força operações determinísticas quando disponível.
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 # =========================================================
 # DOWNLOAD DO DATASET
@@ -375,6 +393,8 @@ def model_summary(model_path):
 # =========================================================
 
 if __name__ == "__main__":
+    set_seed(SEED)
+
     # Garante que o dataset está disponível antes de qualquer operação
     baixar_dataset()
 
@@ -386,6 +406,7 @@ if __name__ == "__main__":
     print(f"  Batch Size:        {BATCH_SIZE}")
     print(f"  Epochs:            {EPOCHS}")
     print(f"  Learning Rate:     {LEARNING_RATE}")
+    print(f"  Seed:              {SEED}")
     print(f"  Device:            {DEVICE}\n")
 
     # 1. Carrega o dataset completo (todas as imagens + máscaras)
@@ -397,7 +418,12 @@ if __name__ == "__main__":
 
     # 3. Divide aleatoriamente o dataset em treino e teste
     # random_split garante que não há sobreposição entre os conjuntos
-    train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+    split_generator = torch.Generator().manual_seed(SEED)
+    train_dataset, test_dataset = random_split(
+        dataset,
+        [train_size, test_size],
+        generator=split_generator
+    )
 
     # 4. Cria os DataLoaders para cada split
     # shuffle=True no treino: embaralha os dados a cada época, evitando
