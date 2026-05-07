@@ -320,12 +320,13 @@ def train_model(model, loader):
       5. Atualiza os pesos com o otimizador Adam
     """
     # CrossEntropyLoss é adequada para segmentação multiclasse.
-    # Ela combina internamente Softmax + NLLLoss.
     criterion = nn.CrossEntropyLoss()
 
     # Adam adapta a taxa de aprendizado para cada parâmetro individualmente,
     # convergindo mais rápido que o SGD clássico na maioria dos casos
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    # optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE) # ADAM
+    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9) # SGD com momentum
+    
 
     history = []  # Armazena a loss média de cada época para gerar o gráfico
 
@@ -386,7 +387,6 @@ def model_summary(model_path):
         f.write(f"Total de Parâmetros: {total:,}\n")
 
     print(f"Resumo do modelo salvo em: {summary_path}")
-
 
 # =========================================================
 # 3. EXECUÇÃO PRINCIPAL
