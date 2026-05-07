@@ -3,3 +3,4 @@ dataset
 __pycache__/
 *.py[cod]
 GTA-V-SID.zip
+results_*
