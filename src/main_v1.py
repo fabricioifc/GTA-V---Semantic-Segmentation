@@ -36,7 +36,7 @@ IMAGE_SIZE = 256
 
 # Número de imagens processadas por vez durante o treinamento
 # Valores menores usam menos memória RAM/VRAM, mas treinam mais devagar
-BATCH_SIZE = 4
+BATCH_SIZE = 8
 
 # Número de vezes que o modelo verá o dataset completo durante o treino
 EPOCHS = 30
@@ -47,25 +47,25 @@ EPOCHS = 30
 LEARNING_RATE = 0.001
 
 # Seed global para reprodutibilidade (random state)
-SEED = 42
+# SEED = 42
 
 # Seleciona automaticamente GPU (cuda) se disponível, caso contrário usa CPU
 # GPU é muito mais rápida para operações com tensores
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def set_seed(seed=SEED):
-    """Define seeds dos principais geradores aleatórios usados no experimento."""
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)
+# def set_seed(seed=SEED):
+#     """Define seeds dos principais geradores aleatórios usados no experimento."""
+#     random.seed(seed)
+#     np.random.seed(seed)
+#     torch.manual_seed(seed)
+#     if torch.cuda.is_available():
+#         torch.cuda.manual_seed(seed)
+#         torch.cuda.manual_seed_all(seed)
 
-    # Força operações determinísticas quando disponível.
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+#     # Força operações determinísticas quando disponível.
+#     torch.backends.cudnn.deterministic = True
+#     torch.backends.cudnn.benchmark = False
 
 # =========================================================
 # DOWNLOAD DO DATASET
@@ -324,8 +324,8 @@ def train_model(model, loader):
 
     # Adam adapta a taxa de aprendizado para cada parâmetro individualmente,
     # convergindo mais rápido que o SGD clássico na maioria dos casos
-    # optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE) # ADAM
-    optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9) # SGD com momentum
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE) # ADAM
+    # optimizer = optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9) # SGD com momentum
     
 
     history = []  # Armazena a loss média de cada época para gerar o gráfico
@@ -393,7 +393,7 @@ def model_summary(model_path):
 # =========================================================
 
 if __name__ == "__main__":
-    set_seed(SEED)
+    # set_seed(SEED)
 
     # Garante que o dataset está disponível antes de qualquer operação
     baixar_dataset()
@@ -406,7 +406,7 @@ if __name__ == "__main__":
     print(f"  Batch Size:        {BATCH_SIZE}")
     print(f"  Epochs:            {EPOCHS}")
     print(f"  Learning Rate:     {LEARNING_RATE}")
-    print(f"  Seed:              {SEED}")
+    # print(f"  Seed:              {SEED}")
     print(f"  Device:            {DEVICE}\n")
 
     # 1. Carrega o dataset completo (todas as imagens + máscaras)
@@ -418,11 +418,11 @@ if __name__ == "__main__":
 
     # 3. Divide aleatoriamente o dataset em treino e teste
     # random_split garante que não há sobreposição entre os conjuntos
-    split_generator = torch.Generator().manual_seed(SEED)
+    # split_generator = torch.Generator().manual_seed(SEED)
     train_dataset, test_dataset = random_split(
         dataset,
         [train_size, test_size],
-        generator=split_generator
+        # generator=split_generator
     )
 
     # 4. Cria os DataLoaders para cada split
